@@ -11,14 +11,16 @@ module.exports = gql`
     likes: [Like]!
     likeCount: Int!
     commentCount: Int!
+    title: String!
+    type: String!
   }
-  type Comment{
-    id:ID!
+  type Comment {
+    id: ID!
     createdAt: String!
     username: String!
     body: String!
   }
-  type Like{
+  type Like {
     id: ID!
     createdAt: String!
     username: String!
@@ -40,18 +42,58 @@ module.exports = gql`
     confirmPassword: String!
     email: String!
   }
+  type S3Payload {
+    signedRequest: String!
+    url: String!
+  }
+  input ProfileInput {
+    photo: String
+    firstName: String!
+    lastName: String!
+    location: String
+    personalWebsite: String
+    portfolioUrl: String
+    bio: String
+  }
+  type Profile {
+    id: ID!
+    photo: String
+    firstName: String!
+    lastName: String!
+    location: String
+    personalWebsite: String
+    portfolioUrl: String
+    bio: String
+  }
   type Query {
     getPosts: [Post]
     getPost(postId: ID!): Post
+    getProfile(username: String!): Profile
+    getUserPost(username: String!): [Post]
   }
   type Mutation {
+    signS3(filename: String!, filetype: String!): S3Payload!
     register(registerInput: RegisterInput): User!
     login(username: String!, password: String!): User!
-    createPost(body: String!, images: [String]) : Post!
-    deletePost(postId: ID!) : String!
+    createPost(
+      body: String!
+      images: [String]
+      type: String!
+      title: String!
+    ): Post!
+    deletePost(postId: ID!): Post!
     createComment(postId: String!, body: String!): Post!
-    deleteComment(postId: String!, commentId: ID!) : Post!
+    deleteComment(postId: String!, commentId: ID!): Post!
     likePost(postId: ID!): Post!
+    editProfile(
+      firstName: String!
+      lastName: String!
+      bio: String
+      location: String
+      personalWebsite: String
+      portfolioUrl: String
+      photo: String
+    ): Profile!
   }
   type Subscription {
     newPost: Post!

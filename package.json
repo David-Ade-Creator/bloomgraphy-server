@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "serve": "node index",
     "start": "nodemon index"
   },
   "keywords": [],
@@ -11,9 +12,13 @@
   "license": "ISC",
   "dependencies": {
     "apollo-server": "^2.22.2",
+    "aws-sdk": "^2.908.0",
     "bcryptjs": "^2.4.3",
+    "dotenv": "^9.0.2",
     "graphql": "^15.5.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.12.3"
+    "mongoose": "^5.12.3",
+    "multer": "^1.4.2",
+    "multer-s3": "^2.9.0"
   }
 }
