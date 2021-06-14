@@ -86,13 +86,13 @@ module.exports = gql`
     deleteComment(postId: String!, commentId: ID!): Post!
     likePost(postId: ID!): Post!
     editProfile(
+      photo: String
       firstName: String!
       lastName: String!
       bio: String
       location: String
       personalWebsite: String
       portfolioUrl: String
-      photo: String
     ): Profile!
   }
   type Subscription {
