@@ -66,6 +66,25 @@ module.exports = {
 
       return post;
     },
+    async editPost(_, { id, body, images, title, type }, context) {
+      const { username } = checkAuth(context);
+      if (body.trim() === "") {
+        throw new Error("Post body must not be empty");
+      }
+      const post = await Post.findByIdAndUpdate(
+        id,
+        { body, images, title, type },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if(!post){
+        throw new Error("This post doesn't exist");
+      }
+
+      return post;
+    },
     async deletePost(_, { postId }, context) {
       const user = checkAuth(context);
 

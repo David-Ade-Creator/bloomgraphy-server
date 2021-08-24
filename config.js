@@ -3,8 +3,10 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports = {
-    MONGODB : "mongodb+srv://standave:9pGujWP66lRHVblY@cluster0.grsx4.mongodb.net/goslin?retryWrites=true&w=majority",
-    SECRET_KEY : "somethingsecret",
-    ACCESSBUCKETKEY : "AKIAJ26QJGKEFTY3WMHA",
-    SECRETACCESSBUCKETKEY : "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"
+    MONGODB : process.env.MONGODB,
+    SECRET_KEY : process.env.JWT_SECRET,
+    ACCESSBUCKETKEY : process.env.ACCESSBUCKETKEY,
+    SECRETACCESSBUCKETKEY : process.env.SECRETACCESSBUCKETKEY,
+    PORT :  process.env.PORT,
+    JWTSECRET : process.env.JWT_SECRET,
 }

@@ -19,7 +19,13 @@ const postSchema = new Schema({
       createdAt: String,
     },
   ],
-  images: [String],
+  images: [
+    {
+      name: String,
+      uid: String,
+      url: String,
+    }
+  ],
   user: {
     type: Schema.Types.ObjectId,
     ref: "users",

@@ -3,6 +3,7 @@ const usersResolvers = require("./users");
 const commentsResolvers = require("./comments");
 const uploadResolvers = require("./upload");
 const profileResovers = require("./profile");
+const chatUsersResolvers = require("./chat");
 
 module.exports = {
     Post: {
@@ -11,7 +12,8 @@ module.exports = {
     },
     Query: {
         ...postsResolvers.Query,
-        ...profileResovers.Query
+        ...profileResovers.Query,
+        ...chatUsersResolvers.Query,
     },
    Mutation: {
        ...usersResolvers.Mutation,
@@ -19,6 +21,7 @@ module.exports = {
        ...commentsResolvers.Mutation,
        ...uploadResolvers.Mutation,
        ...profileResovers.Mutation,
+       ...chatUsersResolvers.Mutation,
    } ,
    Subscription: {
        ...postsResolvers.Subscription
