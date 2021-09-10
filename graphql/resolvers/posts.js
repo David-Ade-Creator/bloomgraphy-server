@@ -25,7 +25,7 @@ module.exports = {
       }
     },
     async getUserPost(_, { username }, context) {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
       try {
         const posts = await Post.find({ username: username }).sort({
           createdAt: -1,
@@ -42,7 +42,7 @@ module.exports = {
   },
   Mutation: {
     async createPost(_, { body, images, title, type }, context) {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
 
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
@@ -67,7 +67,8 @@ module.exports = {
       return post;
     },
     async editPost(_, { id, body, images, title, type }, context) {
-      const { username } = checkAuth(context);
+      const { user } = checkAuth(context);
+      const {username} = user
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
       }
@@ -86,7 +87,7 @@ module.exports = {
       return post;
     },
     async deletePost(_, { postId }, context) {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
 
       try {
         const post = await Post.findById(postId);
@@ -101,7 +102,8 @@ module.exports = {
       }
     },
     likePost: async (_, { postId }, context) => {
-      const { username } = checkAuth(context);
+      const { user } = checkAuth(context);
+      const {username} = user;
 
       const post = await Post.findById(postId);
       if (post) {

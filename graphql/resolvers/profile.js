@@ -5,7 +5,7 @@ const { UserInputError } = require("apollo-server-errors");
 module.exports = {
   Query: {
     async getProfile(_, { username }, context) {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
       try {
         const profile = await User.findOne({ username: username });
         if (profile) {
@@ -26,7 +26,7 @@ module.exports = {
         portfolioUrl,
         bio,
       },context) {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
       try {
         const profile = await User.findOne({ username: user.username });
         if (profile) {

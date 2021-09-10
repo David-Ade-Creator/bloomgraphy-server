@@ -1,13 +1,18 @@
-const { UserInputError, AuthenticationError } = require("apollo-server");
+const { UserInputError, AuthenticationError,PubSub, withFilter } = require("apollo-server");
 const Message = require("../../models/Message");
 
 const User = require("../../models/User");
 const checkAuth = require("../../util/check-auth");
 
+const pubSub = new PubSub();
+
+
+
 module.exports = {
   Query: {
     getMessages: async (_, { recipient }, context) => {
-      const user = checkAuth(context);
+      const {user} = checkAuth(context);
+      const {username} = user;
       const otherUser = await User.findOne({
         username: recipient,
       });
@@ -23,12 +28,13 @@ module.exports = {
       return messages;
     },
     getChatUsers: async (_, { chatUsername }, context) => {
-      const { username } = checkAuth(context);
-      const user = await User.findOne({ username }).populate("chatUsers");
-      if (!user) {
+      const {user} = checkAuth(context);
+      const {username} = user;
+      const _user = await User.findOne({ username }).populate("chatUsers");
+      if (!_user) {
         throw new UserInputError("User not found");
       }
-      const chatUsers = user.chatUsers;
+      const chatUsers = _user.chatUsers;
       chatUsers.map(async (singleUser) => {
           const usernames = [singleUser.username, username];
           const messages = await Message.find({
@@ -46,15 +52,16 @@ module.exports = {
   },
   Mutation: {
     addChatUser: async (_, { recipient }, context) => {
-      const { username } = checkAuth(context);
+      const {user} = checkAuth(context);
+      const {username} = user;
       const recipientUser = await User.findOne({ username: recipient });
       if (!recipientUser) {
         throw new UserInputError("User not found");
       }
-      const user = await User.findOne({ username });
-      if (user) {
-        user.chatUsers.push(recipientUser.id);
-        const newuser = await user.save();
+      const _user = await User.findOne({ username });
+      if (_user) {
+        _user.chatUsers.push(recipientUser.id);
+        const newuser = await _user.save();
         const returneduser = await User.findOne({ username }).populate(
           "chatUsers"
         );
@@ -63,7 +70,8 @@ module.exports = {
       }
     },
     sendMessage: async (_, { content, receiver }, context) => {
-      const { username } = checkAuth(context);
+      const {user} = checkAuth(context);
+      const {username} = user;
       if (content.trim() === "") {
         throw new Error("Message must not be empty");
       }
@@ -75,9 +83,26 @@ module.exports = {
         createdAt: new Date().toISOString(),
       });
 
+      
       const message = await newMessage.save();
 
+      pubSub.publish('NEW_MESSAGE', {newMessage: message })
       return message;
     },
   },
+  Subscription: {
+    newMessage: {
+      subscribe : withFilter((_, {}, context) => {
+        // const {pubSub} = checkAuth(context);
+       return pubSub.asyncIterator(['NEW_MESSAGE'])
+      },({newMessage}, {}, context) =>{
+        const {user} = checkAuth(context);
+        if(newMessage.sender === user.username || newMessage.receiver === user.username ){
+          return true;
+        }
+
+        return false;
+      }),
+    }
+  }
 };
