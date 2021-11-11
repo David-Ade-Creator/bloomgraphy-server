@@ -1,18 +1,14 @@
-const { UserInputError, AuthenticationError,PubSub, withFilter } = require("apollo-server");
+const { UserInputError, AuthenticationError, withFilter } = require("apollo-server");
 const Message = require("../../models/Message");
 
 const User = require("../../models/User");
-const checkAuth = require("../../util/check-auth");
-
-const pubSub = new PubSub();
 
 
 
 module.exports = {
   Query: {
-    getMessages: async (_, { recipient }, context) => {
-      const {user} = checkAuth(context);
-      const {username} = user;
+    getMessages: async (_, { recipient }, {user}) => {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const otherUser = await User.findOne({
         username: recipient,
       });
@@ -27,8 +23,8 @@ module.exports = {
 
       return messages;
     },
-    getChatUsers: async (_, { chatUsername }, context) => {
-      const {user} = checkAuth(context);
+    getChatUsers: async (_, { chatUsername }, {user}) => {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const {username} = user;
       const _user = await User.findOne({ username }).populate("chatUsers");
       if (!_user) {
@@ -51,8 +47,8 @@ module.exports = {
     },
   },
   Mutation: {
-    addChatUser: async (_, { recipient }, context) => {
-      const {user} = checkAuth(context);
+    addChatUser: async (_, { recipient }, {user}) => {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const {username} = user;
       const recipientUser = await User.findOne({ username: recipient });
       if (!recipientUser) {
@@ -69,8 +65,8 @@ module.exports = {
         return chatUsers;
       }
     },
-    sendMessage: async (_, { content, receiver }, context) => {
-      const {user} = checkAuth(context);
+    sendMessage: async (_, { content, receiver }, {user,pubsub}) => {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const {username} = user;
       if (content.trim() === "") {
         throw new Error("Message must not be empty");
@@ -86,17 +82,17 @@ module.exports = {
       
       const message = await newMessage.save();
 
-      pubSub.publish('NEW_MESSAGE', {newMessage: message })
+      pubsub.publish('NEW_MESSAGE', {newMessage: message })
       return message;
     },
   },
   Subscription: {
     newMessage: {
-      subscribe : withFilter((_, {}, context) => {
-        // const {pubSub} = checkAuth(context);
-       return pubSub.asyncIterator(['NEW_MESSAGE'])
-      },({newMessage}, {}, context) =>{
-        const {user} = checkAuth(context);
+      subscribe : withFilter((_, __, {user, pubsub}) => {
+       if (!user) throw new AuthenticationError("Unathenticated")
+       return pubsub.asyncIterator(['NEW_MESSAGE'])
+      },({newMessage}, _, {user}) =>{
+
         if(newMessage.sender === user.username || newMessage.receiver === user.username ){
           return true;
         }

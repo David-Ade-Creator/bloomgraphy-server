@@ -4,14 +4,12 @@ const mongoose = require("mongoose");
 const resolvers = require("./graphql/resolvers");
 const typeDefs = require("./graphql/typeDefs");
 const { MONGODB,PORT } = require("./config.js");
-
-
-const pubsub = new PubSub();
+const contextMiddleware = require("./util/contextMiddleware");
 
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({req}) => ({req,pubsub})
+    context: contextMiddleware,
 });
 
 mongoose.connect(MONGODB,{

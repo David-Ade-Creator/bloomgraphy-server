@@ -4,8 +4,7 @@ const { UserInputError } = require("apollo-server-errors");
 
 module.exports = {
   Query: {
-    async getProfile(_, { username }, context) {
-      const {user} = checkAuth(context);
+    async getProfile(_, { username }, {user}) {
       try {
         const profile = await User.findOne({ username: username });
         if (profile) {
@@ -25,8 +24,7 @@ module.exports = {
         personalWebsite,
         portfolioUrl,
         bio,
-      },context) {
-      const {user} = checkAuth(context);
+      },{user}) {
       try {
         const profile = await User.findOne({ username: user.username });
         if (profile) {
@@ -37,7 +35,6 @@ module.exports = {
             (profile.personalWebsite = personalWebsite),
             (profile.portfolioUrl = portfolioUrl),
             (profile.bio = bio),
-            console.log(profile.photo)
             await profile.save();
           return profile;
         } else throw new UserInputError("User not found");

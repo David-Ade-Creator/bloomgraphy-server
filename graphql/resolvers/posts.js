@@ -24,10 +24,10 @@ module.exports = {
         throw new Error(error);
       }
     },
-    async getUserPost(_, { username }, context) {
-      const {user} = checkAuth(context);
+    async getUserPost(_, __, {user}) {
+      if (!user) throw new AuthenticationError("Unathenticated")
       try {
-        const posts = await Post.find({ username: username }).sort({
+        const posts = await Post.find({ username: user.username }).sort({
           createdAt: -1,
         });
         if (posts) {
@@ -41,9 +41,8 @@ module.exports = {
     },
   },
   Mutation: {
-    async createPost(_, { body, images, title, type }, context) {
-      const {user} = checkAuth(context);
-
+    async createPost(_, { body, images, title, type }, {user}) {
+      if (!user) throw new AuthenticationError("Unathenticated")
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
       }
@@ -66,8 +65,8 @@ module.exports = {
 
       return post;
     },
-    async editPost(_, { id, body, images, title, type }, context) {
-      const { user } = checkAuth(context);
+    async editPost(_, { id, body, images, title, type }, {user}) {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const {username} = user
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
@@ -86,9 +85,8 @@ module.exports = {
 
       return post;
     },
-    async deletePost(_, { postId }, context) {
-      const {user} = checkAuth(context);
-
+    async deletePost(_, { postId }, {user}) {
+      if (!user) throw new AuthenticationError("Unathenticated")
       try {
         const post = await Post.findById(postId);
         if (user.username === post.username) {
@@ -101,8 +99,8 @@ module.exports = {
         throw new Error(error);
       }
     },
-    likePost: async (_, { postId }, context) => {
-      const { user } = checkAuth(context);
+    likePost: async (_, { postId }, {user}) => {
+      if (!user) throw new AuthenticationError("Unathenticated")
       const {username} = user;
 
       const post = await Post.findById(postId);
