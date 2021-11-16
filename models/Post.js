@@ -2,10 +2,10 @@ const { model, Schema } = require("mongoose");
 
 const postSchema = new Schema({
   body: String,
-  username: String,
   createdAt: String,
   type: String,
   title: String,
+  username: String,
   comments: [
     {
       body: String,
@@ -26,10 +26,7 @@ const postSchema = new Schema({
       url: String,
     }
   ],
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "users",
-  },
+  owner: { type: Schema.Types.ObjectId, ref: 'User'},
 });
 
 module.exports = model("Post", postSchema);

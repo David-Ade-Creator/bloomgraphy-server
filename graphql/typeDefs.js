@@ -5,7 +5,6 @@ module.exports = gql`
     id: ID!
     body: String!
     createdAt: String!
-    username: String!
     images: [Image]
     comments: [Comment]!
     likes: [Like]!
@@ -13,13 +12,15 @@ module.exports = gql`
     commentCount: Int!
     title: String!
     type: String!
+    owner: User!
+    username: String
   }
   type Message {
     id:ID!
     content: String!
     createdAt: String
-    sender: String!
-    receiver: String!
+    sender: User
+    receiver: User
   }
   type chatUser {
     id: ID!
@@ -28,6 +29,7 @@ module.exports = gql`
     lastName: String!
     username: String!
     lastmessage: String
+    photo: String
   }
   type Comment {
     id: ID!
@@ -47,6 +49,7 @@ module.exports = gql`
   }
   type User {
     id: ID!
+    photo: String
     email: String!
     firstName: String!
     lastName: String!
@@ -88,7 +91,8 @@ module.exports = gql`
     location: String
     personalWebsite: String
     portfolioUrl: String
-    bio: String
+    bio: String,
+    username: String
   }
   type Query {
     getPosts: [Post]
@@ -96,7 +100,7 @@ module.exports = gql`
     getProfile(username: String!): Profile
     getUserPost(username: String!): [Post]
     getMessages(recipient: String!): [Message]
-    getChatUsers(chatUsername: String!):[chatUser]
+    getChatUsers:[chatUser]
   }
   type Mutation {
     signS3(filename: String!, filetype: String!): S3Payload!
@@ -129,10 +133,11 @@ module.exports = gql`
       portfolioUrl: String
     ): Profile!
     addChatUser(recipient: String!):[chatUser]
-    sendMessage(content:String!,receiver:String!): Message
+    sendMessage(content:String!,receiverId:String!): Message
   }
   type Subscription {
     newPost: Post!
     newMessage: Message!
+    updatedChatUsers: [chatUser]
   }
 `;

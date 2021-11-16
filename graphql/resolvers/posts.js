@@ -1,12 +1,13 @@
 const { AuthenticationError } = require("apollo-server");
 const Post = require("../../models/Post");
-const checkAuth = require("../../util/check-auth");
 
 module.exports = {
   Query: {
     async getPosts() {
       try {
-        const posts = await Post.find().sort({ createdAt: -1 });
+        const posts = await Post.find()
+          .populate("owner")
+          .sort({ createdAt: -1 });
         return posts;
       } catch (error) {
         throw new Error(error);
@@ -14,7 +15,7 @@ module.exports = {
     },
     async getPost(_, { postId }) {
       try {
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).populate("owner");
         if (post) {
           return post;
         } else {
@@ -24,10 +25,10 @@ module.exports = {
         throw new Error(error);
       }
     },
-    async getUserPost(_, __, {user}) {
-      if (!user) throw new AuthenticationError("Unathenticated")
+    async getUserPost(_, { username }, { user }) {
+      if (!user) throw new AuthenticationError("Unathenticated");
       try {
-        const posts = await Post.find({ username: user.username }).sort({
+        const posts = await Post.find({ username }).populate("owner").sort({
           createdAt: -1,
         });
         if (posts) {
@@ -41,33 +42,35 @@ module.exports = {
     },
   },
   Mutation: {
-    async createPost(_, { body, images, title, type }, {user}) {
-      if (!user) throw new AuthenticationError("Unathenticated")
+    async createPost(_, { body, images, title, type }, { user, pubsub }) {
+      if (!user) throw new AuthenticationError("Unathenticated");
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
       }
-
       const newPost = new Post({
         body,
         title,
         type,
-        user: user.id,
+        owner: user.id,
         username: user.username,
         createdAt: new Date().toISOString(),
         images,
       });
 
-      const post = await newPost.save();
+      const savedPost = await newPost.save();
 
-      context.pubsub.publish("NEW_POST", {
-        newPost: post,
+      const returnedPost = await Post.find()
+          .populate("owner")
+          .sort({ createdAt: -1 });
+
+      pubsub.publish("NEW_POST", {
+        newPost: returnedPost,
       });
 
-      return post;
+      return savedPost;
     },
-    async editPost(_, { id, body, images, title, type }, {user}) {
-      if (!user) throw new AuthenticationError("Unathenticated")
-      const {username} = user
+    async editPost(_, { id, body, images, title, type }, { user }) {
+      if (!user) throw new AuthenticationError("Unathenticated");
       if (body.trim() === "") {
         throw new Error("Post body must not be empty");
       }
@@ -79,14 +82,14 @@ module.exports = {
           runValidators: true,
         }
       );
-      if(!post){
+      if (!post) {
         throw new Error("This post doesn't exist");
       }
 
       return post;
     },
-    async deletePost(_, { postId }, {user}) {
-      if (!user) throw new AuthenticationError("Unathenticated")
+    async deletePost(_, { postId }, { user }) {
+      if (!user) throw new AuthenticationError("Unathenticated");
       try {
         const post = await Post.findById(postId);
         if (user.username === post.username) {
@@ -99,9 +102,9 @@ module.exports = {
         throw new Error(error);
       }
     },
-    likePost: async (_, { postId }, {user}) => {
-      if (!user) throw new AuthenticationError("Unathenticated")
-      const {username} = user;
+    likePost: async (_, { postId }, { user }) => {
+      if (!user) throw new AuthenticationError("Unathenticated");
+      const { username } = user;
 
       const post = await Post.findById(postId);
       if (post) {

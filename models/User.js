@@ -12,7 +12,6 @@ const userSchema = new Schema({
   portfolioUrl: String,
   bio: String,
   photo: String,
-  chatUsers: [{ type: Schema.Types.ObjectId, ref: 'User'}],
 });
 
 module.exports = model("User", userSchema);
