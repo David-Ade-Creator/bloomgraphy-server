@@ -19,7 +19,9 @@ module.exports = (context) => {
     })
   }
 
-  context.pubsub = pubsub
+  context.pubsub = pubsub;
+
+  context.endpoint = "/";
 
   return context
 }

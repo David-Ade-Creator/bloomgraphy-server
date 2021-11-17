@@ -15,7 +15,6 @@ module.exports = {
             region: 'us-east-2',
           }
       );
-      console.log(multerS3.AUTO_CONTENT_TYPE)
 
       const s3Params = {
         Bucket: config.s3Bucket,
